@@ -1,0 +1,118 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+C	mainNICE.c	/^	int C;$/;"	m	struct:Student	file:	access:public
+Change	mainNICE.c	/^void Change(void)			\/*	改变学生信息的函数，最后会存入文件中	*\/$/;"	f	signature:(void)
+ConfigAdmin	mainNICE.c	/^int  ConfigAdmin(void)					\/* 	验证管理员密码，原理与验证普通用户基本一直	*\/$/;"	f	signature:(void)
+Configpasswd	mainNICE.c	/^int  Configpasswd(void)                          \/*   验证普通用户与密码的函数   *\/$/;"	f	signature:(void)
+Configpasswd	passwd.c	/^void Configpasswd(void)$/;"	f	signature:(void)
+Createuser	mainNICE.c	/^void Createuser(void)   \/* 创建用户函数*\/$/;"	f	signature:(void)
+Createuser	passwd.c	/^void Createuser(void)$/;"	f	signature:(void)
+Delete	mainNICE.c	/^void Delete(void)			\/*	删除学生数据的函数，最后会保存到文件中	*\/$/;"	f	signature:(void)
+EN	main.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+EN	mainDATE.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+EN	mainNICE.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+EN	mainRETU.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+Find	mainNICE.c	/^void Find(struct Student *h)		\/*	查找学生信息函数	*\/$/;"	f	signature:(struct Student *h)
+LEN	main.c	6;"	d	file:
+LEN	mainDATE.c	4;"	d	file:
+LEN	mainNICE.c	20;"	d	file:
+LEN	mainRETU.c	3;"	d	file:
+List	mainNICE.c	/^void List(struct Student *h)				\/*	列出学生成绩函数	*\/$/;"	f	signature:(struct Student *h)
+MT	main.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+MT	mainDATE.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+MT	mainNICE.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+MT	mainRETU.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+PH	main.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+PH	mainDATE.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+PH	mainNICE.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+PH	mainRETU.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+ReadFile	ReadFile.c	/^struct Student *ReadFile(struct Student *h)$/;"	f	signature:(struct Student *h)
+ReadFile	mainNICE.c	/^struct Student *ReadFile(struct Student *h)			\/*	此函数是个辅助函数，用来读取学生数据文件，并返回头指针	*\/$/;"	f	signature:(struct Student *h)
+Student	main.c	/^struct Student$/;"	s	file:
+Student	mainDATE.c	/^struct Student$/;"	s	file:
+Student	mainNICE.c	/^struct Student$/;"	s	file:
+Student	mainRETU.c	/^struct Student$/;"	s	file:
+Student::C	mainNICE.c	/^	int C;$/;"	m	struct:Student	file:	access:public
+Student::EN	main.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+Student::EN	mainDATE.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+Student::EN	mainNICE.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+Student::EN	mainRETU.c	/^	int EN;$/;"	m	struct:Student	file:	access:public
+Student::MT	main.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+Student::MT	mainDATE.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+Student::MT	mainNICE.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+Student::MT	mainRETU.c	/^	int MT;$/;"	m	struct:Student	file:	access:public
+Student::PH	main.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+Student::PH	mainDATE.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+Student::PH	mainNICE.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+Student::PH	mainRETU.c	/^	int PH;$/;"	m	struct:Student	file:	access:public
+Student::ave	main.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+Student::ave	mainDATE.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+Student::ave	mainNICE.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+Student::ave	mainRETU.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+Student::garde	mainNICE.c	/^	char garde;$/;"	m	struct:Student	file:	access:public
+Student::jiguan	mainNICE.c	/^	char jiguan[30];$/;"	m	struct:Student	file:	access:public
+Student::name	main.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+Student::name	mainDATE.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+Student::name	mainNICE.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+Student::name	mainRETU.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+Student::next	main.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+Student::next	mainDATE.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+Student::next	mainNICE.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+Student::next	mainRETU.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+Student::num	main.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+Student::num	mainDATE.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+Student::num	mainNICE.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+Student::num	mainRETU.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+Student::pai	mainNICE.c	/^	int pai;$/;"	m	struct:Student	file:	access:public
+Student::sum	main.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+Student::sum	mainDATE.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+Student::sum	mainNICE.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+Student::sum	mainRETU.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+ave	main.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+ave	mainDATE.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+ave	mainNICE.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+ave	mainRETU.c	/^	float ave;$/;"	m	struct:Student	file:	access:public
+caculate	caculate.c	/^void caculate(int sum[],float ave[],struct Student *h)$/;"	f	signature:(int sum[],float ave[],struct Student *h)
+caculate	mainDATE.c	/^void caculate(int sum[],float ave[],struct Student *h)$/;"	f	signature:(int sum[],float ave[],struct Student *h)
+caculate	mainNICE.c	/^struct Student *caculate(int sum[],float ave[],struct Student *h)	\/*	计算学生成绩的函数，保存在学生ave与sum这两个变量中	*\/$/;"	f	signature:(int sum[],float ave[],struct Student *h)
+caculate	mainRETU.c	/^void caculate(int sum[],float ave[],struct Student *h)$/;"	f	signature:(int sum[],float ave[],struct Student *h)
+garde	mainNICE.c	/^	char garde;$/;"	m	struct:Student	file:	access:public
+input	input.c	/^struct Student *input(void)$/;"	f	signature:(void)
+input	mainDATE.c	/^struct Student *input(void)$/;"	f	signature:(void)
+input	mainNICE.c	/^struct Student *input(void)			\/* 	学生成绩的输入，用到了链表	*\/	$/;"	f	signature:(void)
+input	mainRETU.c	/^struct Student *input(void)$/;"	f	signature:(void)
+jiguan	mainNICE.c	/^	char jiguan[30];$/;"	m	struct:Student	file:	access:public
+main	main.c	/^int main()$/;"	f
+main	mainDATE.c	/^int main()$/;"	f
+main	mainNICE.c	/^int main()								\/*主函数*\/$/;"	f
+main	mainRETU.c	/^int main()$/;"	f
+main	passwd.c	/^int main()$/;"	f
+name	main.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+name	mainDATE.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+name	mainNICE.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+name	mainRETU.c	/^	char name[20];$/;"	m	struct:Student	file:	access:public
+next	main.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+next	mainDATE.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+next	mainNICE.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+next	mainRETU.c	/^	struct Student *next;$/;"	m	struct:Student	typeref:struct:Student::Student	file:	access:public
+num	main.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+num	mainDATE.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+num	mainNICE.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+num	mainRETU.c	/^	int num;$/;"	m	struct:Student	file:	access:public
+output	mainDATE.c	/^void output(struct Student *h)$/;"	f	signature:(struct Student *h)
+output	mainNICE.c	/^void output(struct Student *h)				\/*	纯输出函数，行参是个头指针	*\/$/;"	f	signature:(struct Student *h)
+output	mainRETU.c	/^void output(struct Student *h)$/;"	f	signature:(struct Student *h)
+output	output.c	/^void output(struct Student *h)$/;"	f	signature:(struct Student *h)
+pai	mainNICE.c	/^	int pai;$/;"	m	struct:Student	file:	access:public
+paixu	mainDATE.c	/^void paixu(struct Student *h)$/;"	f	signature:(struct Student *h)
+paixu	mainNICE.c	/^void paixu(struct Student **h)				\/*	排序函数，用来对学生成绩进行排序	*\/$/;"	f	signature:(struct Student **h)
+paixu	mainRETU.c	/^struct Student * paixu(struct Student *h)$/;"	f	signature:(struct Student *h)
+paixu	paixu.c	/^paixu(struct Student **h)$/;"	f	signature:(struct Student **h)
+sum	main.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+sum	mainDATE.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+sum	mainNICE.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
+sum	mainRETU.c	/^	int sum;$/;"	m	struct:Student	file:	access:public
