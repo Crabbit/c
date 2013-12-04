@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 		      printf( "Child process pid is %d\n",getpid() );
 	      	close( pipe_fd[1] );
 		      if( (read_size = read( pipe_fd[0], buf_r, 100 )) > 0 )
-			    printf( "Child Process has read over.\n" );
+			    printf( "Child Process has read %s.\n",buf_r );
 		      close( pipe_fd[0] );
 		exit(0);
 	      }
@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 		      close( pipe_fd[0] );
 		      printf( "Pleae input pipe string:" );
 		      scanf( "%s",buf_w );
+		      printf( "buf_w is :%s\n", buf_w  );
 		      if( write( pipe_fd[1], buf_w, strlen(buf_w) ) != strlen(buf_w));
 		      close( pipe_fd[1] );
 		      waitpid( RETURN_pid, NULL, 0 );
