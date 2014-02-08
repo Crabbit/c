@@ -91,6 +91,9 @@ int main( int argc, char *argv[] )
 	char 		READ_BUF[1];
 	char 		String[1024000];
 
+	int 		time_start;
+	int 		time_end;
+
 	if(( FILE_FD = open( FILE_NAME, O_RDONLY )) == -1 )
 	      my_error( "open error.",__LINE__ );
 
@@ -109,16 +112,34 @@ int main( int argc, char *argv[] )
 
 //strlen
 	printf( "Start time :%d\n", (int)clock() );
+	time_start = (int)clock();
+
 	for( i = 0; i < 20; i++ )
 		length = strlen( String );
+
+	time_end = (int)clock();
 	printf( "End time :%d\n", (int)clock() );
+
+	if( time_end - time_start < 1000)
+		printf( "USE time is :%d ms.\n", ( time_end - time_start )%1000 );
+	else
+		printf( "USE time is :%d ms.\n", ( time_end - time_start )/1000 );
 	printf( "Standard strlen length is:%d\n", length);
 
 // my strlen
 	printf( "Start time :%d\n", (int)clock() );
+	time_start = (int)clock();
+
 	for( i = 0; i < 20; i++ )
 		length = my_strlen( String );
+
+	time_end = (int)clock();
 	printf( "End time :%d\n", (int)clock() );
+
+	if( time_end - time_start < 1000)
+		printf( "USE time is :%d ms.\n", ( time_end - time_start )%1000 );
+	else
+		printf( "USE time is :%d ms.\n", ( time_end - time_start )/1000 );
 	printf( "My strlen length is:%d\n", length);
 
 	return EXIT_SUCCESS;
