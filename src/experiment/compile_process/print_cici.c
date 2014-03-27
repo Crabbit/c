@@ -1,4 +1,4 @@
 void print_cici( void )
 {
-	printf( "cixi---.\n" );
+	printf( "cici---.\n" );
 }
