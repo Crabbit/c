@@ -22,7 +22,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct data1{
+struct data3{
+	double d;
+	int i;
+	char c;
+};
+
+union data1{
 	double d;
 	int i;
 	char c;
@@ -30,13 +36,13 @@ struct data1{
 
 struct data2{
 	double d;
-	struct data1 da;
+	union data1 da;
 	int i;
 	char c;
 };
 int main(int argc, char *argv[])
 {
-	struct data1 a;
+	union data1 a;
 	struct data2 b;
 	printf( "sizeof data1 = %d.\nsizeof data2 = %d.\n",sizeof(a), sizeof(b) );
 
