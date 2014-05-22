@@ -156,8 +156,15 @@ int main(int argc, char *argv[])
 
 	//接受处理的变量
 	int result;
+	//控制递归变量
+	int control_recu = 0;
 	//获取处理后文件数组首地址
 	Fileinfo *file_array;
+	//递归处理文件
+	Fileinfo *file_recu;
+
+	//通过这个取出文件是否是目录 
+	char str[10];
 
 	//getopt不输出错误信息到stderr
 	opterr = 0;
@@ -166,7 +173,7 @@ int main(int argc, char *argv[])
 	char dirname[32] = {0};
 	strncpy( dirname, ".", 1 );
 
-	while(( result = getopt(argc, argv, "aluR:") ) != -1 )
+	while(( result = getopt(argc, argv, "aluR") ) != -1 )
 	{
 		//printf( "result = %d - %c.\n", result, result );
 		switch(result)
@@ -198,8 +205,32 @@ int main(int argc, char *argv[])
 				break;
 		}
 	}
-	file_array = get_dir( dirname );
-	print_result( file_array, ignore_mode, format, time_type, recursive );
+	if( recursive == false )
+	{
+		file_array = get_dir( dirname );
+		print_result( file_array, ignore_mode, format, time_type, recursive );
+	}
+	else
+	{
+		file_array = get_dir( dirname );
+		file_recu = file_array;
+		for( control_recu = 0; control_recu < count ; control_recu++)
+		{
+			Print_mode( file_array[control_recu].file_mode, str );
+				printf( "directory name is :%s\n", file_array[control_recu].file_name );
+			if( (strncmp(str, "d", 1) == 0) 
+				&& ( strcmp(file_array[control_recu].file_name, "." )!=0 ) 
+				&& ( strcmp(file_array[control_recu].file_name, ".."  )!= 0 ))
+			{
+				printf( "----directory name is :%s\n", file_array[control_recu].file_name );
+				//file_recu = get_dir( file_array[control_recu].file_name );
+				strcpy( dirname, file_array[control_recu].file_name );
+				//printf( "dir is %s\n", dirname );
+				file_recu = get_dir( dirname );
+				print_result( file_recu, ignore_mode, format, time_type, recursive );
+			}
+		}
+	}
 	return EXIT_SUCCESS;
 }
 
@@ -321,6 +352,7 @@ void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Form
 		}
 	}
 
+	/*
 	//先通过第一行文件名长度，计算初始分几栏
 	//并将初始宽度存入数组
 	for( amount = 0; amount < count ; amount++ )
@@ -329,41 +361,68 @@ void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Form
 					|| (ignore_mode == IGNORE_DEFAULT) 
 					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
 		{
-			now_length += (strlen( file_array[amount].file_name ) + 1);
-
-			if(now_length < ws.ws_col )
-				block_length[amount] = strlen( file_array[amount].file_name ) + 1;
+			if((now_length + strlen( file_array[amount].file_name ) + 1)< ws.ws_col )
+			{
+				now_length += (strlen( file_array[amount].file_name ) + 1);
+				//得到一共多少栏 - 1
+				//一共 block_num = amount + 1;
+				block_length[block_num] = strlen( file_array[amount].file_name ) + 1;
+				//printf( "%d lie %s is %d.\n", block_num, file_array[amount].file_name,  block_length[block_num] );
+				block_num++;
+			}
 			else
 				break;
 			//printf( "now length is %d.\n", now_length );
-			//printf( "%d lie %s is %d.\n", amount, file_array[amount].file_name,  block_length[amount] );
 		}
 	}
-	//得到一共多少栏 - 1
-	//一共 block_num = amount + 1;
-	block_num = amount;
 
 	//开始计算分栏
 	//当文件大于block_length[]中记录时候，block_num - 1
 	//并重新计算栏宽
 	printf( "total %d lie.\n", block_num );
 
-	for( control_ana = 0, amount = 0; (control_ana < block_num) && (amount < count); control_ana++ )
+	for( amount = 0; amount < count; )
 	{
-		if( (ignore_mode == IGNORE_MINIMAL)
-					|| (ignore_mode == IGNORE_DEFAULT) 
-					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+		for( control_ana = 0, now_length = 0; control_ana < block_num; )
 		{
-			printf( "Now length limit is %d, file - %s length is %d.\n", block_length[control_ana], file_array[amount].file_name,  strlen(file_array[amount].file_name)+1 );
-			if( (strlen(file_array[amount].file_name)+1) > block_length[control_ana] )
+			if( (ignore_mode == IGNORE_MINIMAL)
+						|| (ignore_mode == IGNORE_DEFAULT) 
+						&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
 			{
-			      block_num--;
-			      block_length[control_ana] = strlen( file_array[amount].file_name ) + 1;
-			      amount = 0;
+						printf( "Now :%d length limit is %d, file - %s length is %d.\n", control_ana, block_length[control_ana], file_array[amount].file_name,  strlen(file_array[amount].file_name)+1 );
+						*/
+						/*
+						//比当前剩余还要宽，则减少1列，重新安排
+						if( (strlen(file_array[amount].file_name)+1) >( ws.ws_col - now_length + block_length[control_ana] ))
+						{
+						      now_length -= block_length[control_ana];
+						      block_num--;
+						      amount = 0;
+						      break;
+						}
+						else
+						      if( block_length[control_ana] < (strlen(file_array[amount].file_name)+1) 
+							  && (strlen(file_array[amount].file_name)+1) <= ( ws.ws_col - now_length + block_length[control_ana] ) )
+						      {
+						      	now_length -= block_length[control_ana];
+							block_length[control_ana] = (strlen(file_array[amount].file_name)+1);
+						      	now_length += block_length[control_ana];
+							amount++;
+							control_ana++;
+						      }
+						      else
+						      {
+							amount++;
+							control_ana++;
+						      }
+						      */
+	/*
 			}
-			amount++;
+			else
+				amount++;
 		}
 	}
+	*/
 
 	printf( "Total %d files.\n", total );
 /*
