@@ -25,8 +25,17 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <time.h>
+
+#include <pwd.h>
+#include <grp.h>
+
+#include <sys/ioctl.h>
 
 typedef enum {false = 0, true = 1} bool;
+
+//file amount
+static int count;
 
 //filetype
 enum Filetype
@@ -126,6 +135,12 @@ static enum sort_type const sort_types[] =
 //Fileinfo * get_dir( char const *name ,enum Ignore_mode ignore_mode );
 Fileinfo * get_dir( char const *name );
 void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Format format, enum Time_type time_type, bool recursive );
+void Print_mode( mode_t mode, char str[]);
+int get_num_length( int number );
+int max( int x, int y );
+void print_suit_num( int num, int max_length );
+void print_suit_char( char *str, int max_length );
+void print_time( time_t time );
 
 int main(int argc, char *argv[])
 {
@@ -151,13 +166,13 @@ int main(int argc, char *argv[])
 	char dirname[32] = {0};
 	strncpy( dirname, ".", 1 );
 
-	while(( result = getopt(argc, argv, "al:R:u:") ) != -1 )
+	while(( result = getopt(argc, argv, "aluR:") ) != -1 )
 	{
-		printf( "result = %d - %c.\n", result, result );
+		//printf( "result = %d - %c.\n", result, result );
 		switch(result)
 		{
 			case 'a':
-				printf( "option = a\n." );
+				//printf( "option = a\n." );
 				ignore_mode = IGNORE_MINIMAL;
 				break;
 			case 'l':
@@ -193,7 +208,7 @@ int main(int argc, char *argv[])
 Fileinfo * get_dir( char const *name )
 {
 	//统计文件个数
-	int count = 0;
+	count = 0;
 
 	//读取目录
 	DIR *dirp;
@@ -228,12 +243,11 @@ Fileinfo * get_dir( char const *name )
 			file_array[count].file_atime = buf.st_atime;
 			file_array[count].file_ctime = buf.st_ctime;
 			file_array[count].file_name = next->d_name;
-			file_array[count].file_name = next->d_name;
 			//printf( "%s\n",next->d_name );
 			//printf( "%s\n", file_array[count].file_name );
 		      	count++;
 		}
-		printf( "Total %d file.\n", count );
+		//printf( "Total %d file.\n", count );
 	}
 
 	closedir( dirp );
@@ -242,9 +256,267 @@ Fileinfo * get_dir( char const *name )
 
 void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Format format, enum Time_type time_type, bool recursive )
 {
-	if( ignore_mode == IGNORE_DEFAULT )
-	{
 
+	//通过全局变量count，获得当前目录文件数量.
+	//通过amount控制
+	int amount;
+	//通过total获得处理的总文件数
+	int total = 0;
+
+	//控制linke最大数
+	unsigned max_link = 1;
+	//获得用户名最长个数
+	unsigned max_name = 1;
+	//获得组名最长个数
+	unsigned max_group = 1;
+	//控制size最大数
+	unsigned max_size = 1;
+
+	//输出权限的字符串
+	char str[10];
+
+	struct passwd *user_id;
+	struct group *group_id;
+
+	//获取终端大小
+	struct winsize ws;
+	//最大可能将屏幕分256栏,用来记录每栏最大宽度
+	int block_length[256] = {0};
+	//用来记录一共多少栏
+	int block_num = 0;
+	//文件名总长度
+	int sum_filename_length = 0;
+	//当前文件名占行宽
+	int now_length = 0;
+	//控制检测
+	int control_ana = 0;
+
+	if( ioctl( 0, TIOCGWINSZ, &ws ) != 0 )
+	      fprintf( stderr, "ioctl error.\n" );
+
+
+	//先处理一遍文件，求出链接数啊等等最大值
+	for( amount = 0; amount < count; amount++ )
+	{
+		//要么-a非隐藏，要么隐藏模式+隐藏dot.
+		if( (ignore_mode == IGNORE_MINIMAL)
+					|| (ignore_mode == IGNORE_DEFAULT) 
+					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+		{
+			//处理文件数自加
+			total++;
+			//求链接数数字长度最大值
+			max_link = max( get_num_length(file_array[amount].file_nlink), max_link );
+			//求用户名最长值
+			user_id = getpwuid( file_array[amount].file_uid );
+			max_name = max( strlen(user_id->pw_name), max_name );
+			//求组名最长值
+			group_id = getgrgid( file_array[amount].file_gid );
+			max_group = max( strlen(group_id->gr_name), max_group );
+			//求size最大值
+			max_size = max( get_num_length(file_array[amount].file_size), max_size );
+
+			//统计文件名总长度，为计算分栏做准备
+			sum_filename_length += ( strlen(file_array[amount].file_name)+ 1);
+		}
 	}
 
+	//先通过第一行文件名长度，计算初始分几栏
+	//并将初始宽度存入数组
+	for( amount = 0; amount < count ; amount++ )
+	{
+		if( (ignore_mode == IGNORE_MINIMAL)
+					|| (ignore_mode == IGNORE_DEFAULT) 
+					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+		{
+			now_length += (strlen( file_array[amount].file_name ) + 1);
+
+			if(now_length < ws.ws_col )
+				block_length[amount] = strlen( file_array[amount].file_name ) + 1;
+			else
+				break;
+			//printf( "now length is %d.\n", now_length );
+			//printf( "%d lie %s is %d.\n", amount, file_array[amount].file_name,  block_length[amount] );
+		}
+	}
+	//得到一共多少栏 - 1
+	//一共 block_num = amount + 1;
+	block_num = amount;
+
+	//开始计算分栏
+	//当文件大于block_length[]中记录时候，block_num - 1
+	//并重新计算栏宽
+	printf( "total %d lie.\n", block_num );
+
+	for( control_ana = 0, amount = 0; (control_ana < block_num) && (amount < count); control_ana++ )
+	{
+		if( (ignore_mode == IGNORE_MINIMAL)
+					|| (ignore_mode == IGNORE_DEFAULT) 
+					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+		{
+			printf( "Now length limit is %d, file - %s length is %d.\n", block_length[control_ana], file_array[amount].file_name,  strlen(file_array[amount].file_name)+1 );
+			if( (strlen(file_array[amount].file_name)+1) > block_length[control_ana] )
+			{
+			      block_num--;
+			      block_length[control_ana] = strlen( file_array[amount].file_name ) + 1;
+			      amount = 0;
+			}
+			amount++;
+		}
+	}
+
+	printf( "Total %d files.\n", total );
+/*
+	printf( "max link is %d.\n", max_link );
+	printf( "max name is %d.\n", max_name );
+	printf( "max grop is %d.\n", max_group );
+	printf( "max size is %d.\n", max_size );
+*/
+
+	//开始显示文件
+	for( amount = 0; amount < count; amount++ )
+	{
+		if( (ignore_mode == IGNORE_MINIMAL)
+					|| (ignore_mode == IGNORE_DEFAULT) 
+					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+		{
+			//printf( "file name = %s\n",file_array[amount].file_name );
+			//长格式输出
+			if( format == long_format )
+			{
+				Print_mode( file_array[amount].file_mode, str );
+				printf( "%-11s", str );
+				//输出链接数
+				print_suit_num( file_array[amount].file_nlink, max_link );
+				//根据uid输出用户名
+				user_id = getpwuid( file_array[amount].file_uid );
+				print_suit_char( user_id->pw_name, max_name );
+				//更具gid输出组名
+				group_id = getgrgid( file_array[amount].file_gid );
+				print_suit_char( group_id->gr_name, max_group );
+				//输出size
+				print_suit_num( file_array[amount].file_size, max_size );
+				//输出时间
+				// -u参数，显示的是最后访问时间
+				if( time_type == time_atime )
+					print_time( file_array[amount].file_atime );
+				else
+					print_time( file_array[amount].file_mtime );
+				//输出文件名
+				printf( "%s\n", file_array[amount].file_name );
+
+				// 默认参数，显示的是最后修改时间
+			}
+			if( format == default_format )
+			{
+
+			}
+		}
+	}
+}
+
+void Print_mode( mode_t mode, char str[])
+{
+	strcpy( str, "----------" );
+//get the type of the file
+	if (S_ISLNK(mode))
+                str[0] = 'l';
+	if (S_ISREG(mode))
+                str[0] = '-';
+	if (S_ISDIR(mode))
+                str[0] = 'd';
+	if (S_ISCHR(mode))
+                str[0] = 'c';
+	if (S_ISBLK(mode))
+                str[0] = 'b';
+	if (S_ISFIFO(mode))
+                str[0] = 'f';
+	if (S_ISSOCK(mode))
+                str[0] = 's';
+
+//print User--Group--Other permissions
+	if (mode & S_IRUSR)
+		str[1] = 'r';
+	if (mode & S_IWUSR)
+		str[2] = 'w';
+	if (mode & S_IXUSR)
+		str[3] = 'x';
+	if (mode & S_ISUID)
+	        str[3] = 's';
+	if (mode & S_IRGRP)
+		str[4] = 'r';
+	if (mode & S_IWGRP)
+		str[5] = 'w';
+	if (mode & S_IXGRP)
+		str[6] = 'x';
+	if (mode & S_ISGID)
+		str[6] = 's';
+	if (mode & S_IROTH)
+		str[7] = 'r';
+	if (mode & S_IWOTH)
+		str[8] = 'w';
+	if (mode & S_IXOTH)
+		str[9] = 'x';
+	if (mode & S_ISVTX)
+		str[9] = 't';
+}
+
+//求出数字多长
+int get_num_length( int number )
+{
+	//记录几位数
+	int i = 1;
+	//处理传入数字
+	int tmp = number;
+	//求得i为位数
+	for( i = 0; tmp != 0 ;i++  )
+	      tmp /= 10;
+	return i;
+}
+
+int max( int x, int y )
+{
+	return x>y?x:y;
+}
+
+//输出合适格式的数字
+void print_suit_num( int num, int max_length )
+{
+	int num_length = 0;
+	num_length = get_num_length( num );
+	for( ; (max_length - num_length) != 0; num_length++  )
+	      printf( " " );
+
+	printf( "%d", num );
+	//最后面补上一个空格
+	printf( " " );
+}
+
+//输出合适格式的字符串
+void print_suit_char( char *str, int max_length )
+{
+	int char_length = 0;
+	char_length = strlen( str );
+	//字符串先输出，再输出空格
+	printf( "%s", str );
+
+	for( ;(max_length - char_length) != 0 ; char_length++ )
+	      printf( " " );
+
+	//最后面补上一个空格
+	printf( " " );
+}
+
+//输出时间
+void print_time( time_t time )
+{
+	int i = 0;
+	char buf_time[32];
+
+	strncpy( buf_time, ctime(&time),24 );
+	buf_time[25] = '\0';
+
+	for( i = 4; i < 16; i++ )
+		printf( "%c", buf_time[i] );
+	printf( " " );
 }
