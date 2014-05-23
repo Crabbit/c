@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -111,6 +112,7 @@ typedef struct fileinfo
 //递归/非递归
 static bool recursive;
 
+
 enum sort_type
 {
     sort_none = -1,		/* -U */
@@ -120,11 +122,6 @@ enum sort_type
     sort_version,		/* -v */
     sort_time,			/* -t */
     sort_numtypes		/* the number of elements of this enum */
-};
-
-static char const *const sort_args[] =
-{
-  "none", "time", "size", "extension", "version", NULL
 };
 
 static enum sort_type const sort_types[] =
@@ -141,6 +138,16 @@ int max( int x, int y );
 void print_suit_num( int num, int max_length );
 void print_suit_char( char *str, int max_length );
 void print_time( time_t time );
+void  recursive_pend( char const *dirname );
+int comp (const void *x, const void *y);
+void my_sort ( Fileinfo *file_array );
+
+void my_err( const char *err_string, int line )
+{
+	fprintf( stderr, "line:%d", line );
+	perror( err_string );
+	exit(1);
+}
 
 int main(int argc, char *argv[])
 {
@@ -156,15 +163,9 @@ int main(int argc, char *argv[])
 
 	//接受处理的变量
 	int result;
-	//控制递归变量
-	int control_recu = 0;
 	//获取处理后文件数组首地址
 	Fileinfo *file_array;
-	//递归处理文件
-	Fileinfo *file_recu;
 
-	//通过这个取出文件是否是目录 
-	char str[10];
 
 	//getopt不输出错误信息到stderr
 	opterr = 0;
@@ -212,30 +213,68 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		file_array = get_dir( dirname );
-		file_recu = file_array;
-		for( control_recu = 0; control_recu < count ; control_recu++)
-		{
-			Print_mode( file_array[control_recu].file_mode, str );
-				printf( "directory name is :%s\n", file_array[control_recu].file_name );
-			if( (strncmp(str, "d", 1) == 0) 
-				&& ( strcmp(file_array[control_recu].file_name, "." )!=0 ) 
-				&& ( strcmp(file_array[control_recu].file_name, ".."  )!= 0 ))
-			{
-				printf( "----directory name is :%s\n", file_array[control_recu].file_name );
-				//file_recu = get_dir( file_array[control_recu].file_name );
-				strcpy( dirname, file_array[control_recu].file_name );
-				//printf( "dir is %s\n", dirname );
-				file_recu = get_dir( dirname );
-				print_result( file_recu, ignore_mode, format, time_type, recursive );
-			}
-		}
+		recursive_pend( dirname );
 	}
 	return EXIT_SUCCESS;
 }
 
+void  recursive_pend( char const *dirname )
+{
+	//递归处理文件
+	Fileinfo *file_recu;
+	//获取处理后文件数组首地址
+	Fileinfo *file_array;
+
+	//控制递归变量
+	int control_recu = 0;
+
+	//通过这个取出文件是否是目录 
+	char str[10];
+
+	//递归深层目录
+	char dir_deep[256];
+	//当前目录文件数
+	int count_recu = 0;
+
+	//printf( "dir_deep : %s\n", dirname );
+	printf( "\n" );
+	printf( "Directory : %s\n", dirname );
+	file_array = get_dir( dirname );
+	count_recu = count;
+	print_result( file_array, ignore_mode, format, time_type, recursive );
+
+	//开始对目录做递归处理
+	//用新变量对当前目录做操作
+	file_recu = file_array;
+	//开始循环检查
+	for( control_recu = 0; control_recu < count_recu ; control_recu++)
+	{
+		//始终保持在当前目录下
+		strcpy( dir_deep, dirname );
+		//printf( "In -> %s The %d file -> %s\n", dir_deep, control_recu, file_array[control_recu].file_name );
+		if( (ignore_mode == IGNORE_MINIMAL)
+					|| (ignore_mode == IGNORE_DEFAULT) 
+					&& (strncmp(file_array[control_recu].file_name, "..", 1 ) != 0) )
+		{
+			Print_mode( file_array[control_recu].file_mode, str );
+			if( (strncmp(str, "d", 1) == 0) 
+				&& ( strcmp(file_recu[control_recu].file_name, "." )!=0 ) 
+				&& ( strcmp(file_recu[control_recu].file_name, ".."  )!= 0 ))
+			{
+				//printf( "----directory name is :%s\n", file_array[control_recu].file_name );
+				//在目录后添加/
+				strcat( dir_deep, "/" );
+				strcat( dir_deep, file_array[control_recu].file_name  );
+				//printf( "dir is %s\n", dirname );
+				recursive_pend( dir_deep );
+			}
+		}
+	}
+}
+
 //static void print_dir( char const *name, char const *realname, bool command_line_arg )
 //Fileinfo * get_dir( char const *name ,enum Ignore_mode ignore_mode , bool recursive )
+//获取指定目录下的各个信息
 Fileinfo * get_dir( char const *name )
 {
 	//统计文件个数
@@ -244,6 +283,9 @@ Fileinfo * get_dir( char const *name )
 	//读取目录
 	DIR *dirp;
 	struct dirent *next;
+
+	//获得目录名称
+	char str[256];
 
 	//定义动态数组
 	//存取目录文件信息
@@ -262,9 +304,14 @@ Fileinfo * get_dir( char const *name )
 	{
 		while((next = readdir( dirp )) != NULL )
 		{
-			file_array = (Fileinfo *)realloc( file_array, (count + 1) * sizeof(Fileinfo));
-			if( lstat( next->d_name, &buf ) == -1 )
-			      fprintf( stderr, "lstat error.\n" );
+			file_array = (Fileinfo *)realloc( file_array, (count + 2) * sizeof(Fileinfo));
+			
+			strcpy( str, name );
+			strcat( str, "/" );
+			strcat( str, next->d_name );
+			//printf( "lstat file is %s\n", str);
+			if( lstat( str, &buf ) == -1 )
+				my_err( "lstat",__LINE__ );
 			file_array[count].file_mode = buf.st_mode;
 			file_array[count].file_nlink = buf.st_nlink;
 			file_array[count].file_uid = buf.st_uid;
@@ -280,6 +327,8 @@ Fileinfo * get_dir( char const *name )
 		}
 		//printf( "Total %d file.\n", count );
 	}
+
+	my_sort( file_array );
 
 	closedir( dirp );
 	return file_array;
@@ -315,18 +364,20 @@ void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Form
 	int block_length[256] = {0};
 	//用来记录一共多少栏
 	int block_num = 0;
-	//文件名总长度
-	int sum_filename_length = 0;
-	//当前文件名占行宽
-	int now_length = 0;
-	//控制检测
+	//文件名最短检测
+	int min_name_length = 50;
+	//当前最大总长度
+	int max_sum_length = 0;
+	//控制实际输出到第几列,而不是用文件数量变量控制
 	int control_ana = 0;
+	//控制输出空格数量
+	int space_num = 0;
 
 	if( ioctl( 0, TIOCGWINSZ, &ws ) != 0 )
 	      fprintf( stderr, "ioctl error.\n" );
 
 
-	//先处理一遍文件，求出链接数啊等等最大值
+	////先处理一遍文件，求出链接数啊等等最大值
 	for( amount = 0; amount < count; amount++ )
 	{
 		//要么-a非隐藏，要么隐藏模式+隐藏dot.
@@ -347,83 +398,51 @@ void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Form
 			//求size最大值
 			max_size = max( get_num_length(file_array[amount].file_size), max_size );
 
-			//统计文件名总长度，为计算分栏做准备
-			sum_filename_length += ( strlen(file_array[amount].file_name)+ 1);
+			if( (strlen(file_array[amount].file_name)+2) < min_name_length )
+			      min_name_length = strlen(file_array[amount].file_name)+2;
+
 		}
 	}
 
-	/*
-	//先通过第一行文件名长度，计算初始分几栏
-	//并将初始宽度存入数组
-	for( amount = 0; amount < count ; amount++ )
-	{
-		if( (ignore_mode == IGNORE_MINIMAL)
-					|| (ignore_mode == IGNORE_DEFAULT) 
-					&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
-		{
-			if((now_length + strlen( file_array[amount].file_name ) + 1)< ws.ws_col )
-			{
-				now_length += (strlen( file_array[amount].file_name ) + 1);
-				//得到一共多少栏 - 1
-				//一共 block_num = amount + 1;
-				block_length[block_num] = strlen( file_array[amount].file_name ) + 1;
-				//printf( "%d lie %s is %d.\n", block_num, file_array[amount].file_name,  block_length[block_num] );
-				block_num++;
-			}
-			else
-				break;
-			//printf( "now length is %d.\n", now_length );
-		}
-	}
+	//通过屏幕宽度，根据最小文件名长度计算最大分多少列
+	//printf( "clo = %d, min length = %d.\n", ws.ws_col, min_name_length );
+	block_num = ws.ws_col / min_name_length;
 
 	//开始计算分栏
 	//当文件大于block_length[]中记录时候，block_num - 1
 	//并重新计算栏宽
-	printf( "total %d lie.\n", block_num );
+	//printf( "total %d lie.\n", block_num );
 
-	for( amount = 0; amount < count; )
+	//求出小列宽度，最多列情况下，每一列的最长长度
+	while( 1 )
 	{
-		for( control_ana = 0, now_length = 0; control_ana < block_num; )
+		for( amount = 0, control_ana = 0; amount < count; amount++)
 		{
 			if( (ignore_mode == IGNORE_MINIMAL)
 						|| (ignore_mode == IGNORE_DEFAULT) 
 						&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
 			{
-						printf( "Now :%d length limit is %d, file - %s length is %d.\n", control_ana, block_length[control_ana], file_array[amount].file_name,  strlen(file_array[amount].file_name)+1 );
-						*/
-						/*
-						//比当前剩余还要宽，则减少1列，重新安排
-						if( (strlen(file_array[amount].file_name)+1) >( ws.ws_col - now_length + block_length[control_ana] ))
-						{
-						      now_length -= block_length[control_ana];
-						      block_num--;
-						      amount = 0;
-						      break;
-						}
-						else
-						      if( block_length[control_ana] < (strlen(file_array[amount].file_name)+1) 
-							  && (strlen(file_array[amount].file_name)+1) <= ( ws.ws_col - now_length + block_length[control_ana] ) )
-						      {
-						      	now_length -= block_length[control_ana];
-							block_length[control_ana] = (strlen(file_array[amount].file_name)+1);
-						      	now_length += block_length[control_ana];
-							amount++;
-							control_ana++;
-						      }
-						      else
-						      {
-							amount++;
-							control_ana++;
-						      }
-						      */
-	/*
+				//printf( "now exec is %d lie.\n",control_ana%block_num );
+				if( (strlen( file_array[amount].file_name )+2) > block_length[control_ana%block_num] )
+				{
+					block_length[control_ana%block_num] = strlen( file_array[amount].file_name ) +2;
+				}
+				//printf( "%d lie -- file %s,lie length is %d.\n", control_ana%block_num, file_array[amount].file_name, block_length[control_ana] );
+				control_ana++;
 			}
-			else
-				amount++;
 		}
+		for( amount = 0, max_sum_length = 0; (amount < total) && (amount < block_num); amount++ )
+		{
+		      max_sum_length += block_length[amount];
+		}
+		if( max_sum_length > ws.ws_col )
+		      block_num--;
+		else
+		      break;
+		//printf( "Now block_number is :%d.\n", block_num );
 	}
-	*/
 
+	//printf( "total %d lie.\n", block_num );
 	printf( "Total %d files.\n", total );
 /*
 	printf( "max link is %d.\n", max_link );
@@ -468,7 +487,25 @@ void print_result( Fileinfo *file_array, enum Ignore_mode ignore_mode, enum Form
 			}
 			if( format == default_format )
 			{
-
+				for( amount = 0, control_ana = 0; amount < count; amount++ )
+				{
+					if( (ignore_mode == IGNORE_MINIMAL)
+								|| (ignore_mode == IGNORE_DEFAULT) 
+								&& (strncmp(file_array[amount].file_name, "..", 1 ) != 0) )
+					{
+						for( space_num = 0; 
+						     space_num <( block_length[control_ana%block_num] - strlen(file_array[amount].file_name) -2 );
+						     space_num++ )
+						{
+							printf( " " );
+						}
+						control_ana++;
+						printf( "%s  ", file_array[amount].file_name );
+					}
+					if( control_ana != 0 && control_ana % block_num == 0 )
+					      printf( "\n" );
+				}
+				printf( "\n" );
 			}
 		}
 	}
@@ -542,7 +579,10 @@ int max( int x, int y )
 void print_suit_num( int num, int max_length )
 {
 	int num_length = 0;
-	num_length = get_num_length( num );
+	if( num != 0 )
+		num_length = get_num_length( num );
+	else
+		num_length = 1;
 	for( ; (max_length - num_length) != 0; num_length++  )
 	      printf( " " );
 
@@ -578,4 +618,15 @@ void print_time( time_t time )
 	for( i = 4; i < 16; i++ )
 		printf( "%c", buf_time[i] );
 	printf( " " );
+}
+
+// qsort函数
+int comp (const void *x, const void *y)
+{
+	return strcmp(((Fileinfo*)x)->file_name, ((Fileinfo*)y)->file_name);
+}
+
+void my_sort ( Fileinfo *file_array )
+{
+	qsort (file_array, count, sizeof (Fileinfo), comp);
 }
