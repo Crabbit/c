@@ -1,0 +1,1 @@
+cmd_/mnt/OS_class/OS/stat/my_stat.ko.unsigned := ld -r -m elf_x86_64 -T /usr/src/kernels/2.6.32-279.el6.x86_64/scripts/module-common.lds --build-id -o /mnt/OS_class/OS/stat/my_stat.ko.unsigned /mnt/OS_class/OS/stat/my_stat.o /mnt/OS_class/OS/stat/my_stat.mod.o 

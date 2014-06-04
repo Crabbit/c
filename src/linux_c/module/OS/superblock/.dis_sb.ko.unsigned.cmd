@@ -1,0 +1,1 @@
+cmd_/mnt/OS_class/OS/superblock/dis_sb.ko.unsigned := ld -r -m elf_x86_64 -T /usr/src/kernels/2.6.32-279.el6.x86_64/scripts/module-common.lds --build-id -o /mnt/OS_class/OS/superblock/dis_sb.ko.unsigned /mnt/OS_class/OS/superblock/dis_sb.o /mnt/OS_class/OS/superblock/dis_sb.mod.o 
